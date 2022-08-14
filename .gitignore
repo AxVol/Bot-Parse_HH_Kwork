@@ -1,5 +1,6 @@
 venv/
 log/
 json/
+__pycache__/
 .env
 test.html
