@@ -39,8 +39,10 @@ def telegram_bot(token):
                             name = el['name']
                             url = el['alternate_url']
                             schedule = el['schedule']['name']
-                            
-                            if el['salary'] == None:
+                            salary = el['salary']
+                            print(salary)
+
+                            if salary == None:
                                 payment = 'Не указана'
                             else:
                                 from_payment = el['salary']['from']
@@ -52,7 +54,7 @@ def telegram_bot(token):
                             else:
                                 address = el['address']['street']
                             
-                            if payment:
+                            if salary == None:
                                 bot.send_message(message.chat.id, 
                                     f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата - {payment}\nСcылка - {url}')
                             else:
