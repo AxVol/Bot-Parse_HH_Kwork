@@ -31,6 +31,10 @@ def main() -> json:
     with open('json/headhunter.json', 'w', encoding='utf-8') as file:
         file.write(json.dumps(JsonObject, ensure_ascii=False))
 
+    with open('log/headhunter.txt', 'w', encoding='utf-8') as f:
+        log = JsonObject['items'][0]['published_at']
+        f.write(log)
 
-if __name__ == '__main__':
-    main()
+
+if __name__ == '__main__': #NAME, ADRESS, published_at, url, snippet(requirement, responsibility) Schedule(name), 
+    main()                 # salary(from, to, currency)
