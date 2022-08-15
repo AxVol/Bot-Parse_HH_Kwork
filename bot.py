@@ -27,45 +27,40 @@ def telegram_bot(token):
         if message.text == 'HeadHunter':
             data = json.loads(headhunter.parse())
             work = data['items']
+            published = headhunter.read_log()
 
-            with open('log/headhunter.txt', 'r', encoding='utf-8') as f:
-                published = f.read()
+            if work[0]['published_at'] == published:
+                bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
+            else:
+                for el in work:
+                    if el['published_at'] != published:
+                        name = el['name']
+                        url = el['alternate_url']
+                        schedule = el['schedule']['name']
 
-                if work[0]['published_at'] == published:
-                    bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
-                else:
-                    for el in work:
-                        if el['published_at'] != published:
-                            name = el['name']
-                            url = el['alternate_url']
-                            schedule = el['schedule']['name']
-                            salary = el['salary']
-                            print(salary)
-
-                            if salary == None:
-                                payment = 'Не указана'
-                            else:
-                                from_payment = el['salary']['from']
-                                to_payment = el['salary']['to']
-                                currency = el['salary']['currency']
-
-                            if el['address'] == None or el['address']['street'] == None:
-                                address = 'Не указан'
-                            else:
-                                address = el['address']['street']
-                            
-                            if salary == None:
-                                bot.send_message(message.chat.id, 
-                                    f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата - {payment}\nСcылка - {url}')
-                            else:
-                                bot.send_message(message.chat.id, 
-                                    f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата\n    От: {from_payment}\n    До: {to_payment}\n    Валюта: {currency}\nСcылка - {url}')
+                        if el['address'] == None or el['address']['street'] == None:
+                            address = 'Не указан'
                         else:
-                            break
+                            address = el['address']['street']
 
-                    with open('log/headhunter.txt', 'w', encoding='utf-8') as file:
-                        log = work[0]['published_at']
-                        file.write(log)
+                        salary = el['salary']
+                        
+                        if salary == None:
+                            payment = 'Не указана'
+
+                            bot.send_message(message.chat.id, 
+                                f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата - {payment}\nСcылка - {url}')
+                        else:
+                            from_payment = el['salary']['from']
+                            to_payment = el['salary']['to']
+                            currency = el['salary']['currency']
+
+                            bot.send_message(message.chat.id, 
+                                f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата\n    От: {from_payment}\n    До: {to_payment}\n    Валюта: {currency}\nСcылка - {url}')
+                    else:
+                        break
+
+                headhunter.create_log(work[0]['published_at'])
 
         if message.text == 'Kwork':
             bot.send_message(message.chat.id, '1')

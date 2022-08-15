@@ -1,10 +1,10 @@
 import requests
-import json
+import os
 
 from fake_useragent import UserAgent
 
 
-def parse() -> json:
+def parse() -> dict:
     ua = UserAgent().random
 
     params = {
@@ -25,16 +25,16 @@ def parse() -> json:
     return data
 
 
-def main() -> json:
-    JsonObject = json.loads(parse()) 
-
-    with open('json/headhunter.json', 'w', encoding='utf-8') as file:
-        file.write(json.dumps(JsonObject, ensure_ascii=False))
-
+def create_log(date: str) -> str:
     with open('log/headhunter.txt', 'w', encoding='utf-8') as f:
-        log = JsonObject['items'][0]['published_at']
-        f.write(log)
+        f.write(date)
 
 
-if __name__ == '__main__': #NAME, ADRESS, published_at, url, snippet(requirement, responsibility) Schedule(name), 
-    main()                 # salary(from, to, currency)
+def read_log() -> str:
+    try:
+        with open('log/headhunter.txt', 'r', encoding='utf-8') as f:
+            log = f.read()
+
+            return log
+    except:
+        os.mkdir('log')
