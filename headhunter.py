@@ -25,7 +25,7 @@ def parse() -> dict:
     return data
 
 
-def create_log(date: str) -> str:
+def create_log(date: str):
     with open('log/headhunter.txt', 'w', encoding='utf-8') as f:
         f.write(date)
 
