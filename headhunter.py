@@ -54,7 +54,7 @@ def read_log() -> datetime:
             pass
 
 
-def former_time(date):
+def former_time(date) -> datetime:
     format_time = "%Y-%m-%dT%H:%M:%S+%f"
     second_format = "%Y-%m-%d %H:%M:%S"
     new_time_format = "%Y-%m-%d %H:%M:%S.030000"

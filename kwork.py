@@ -18,7 +18,7 @@ def parse() -> list:
             offer = data.find('div', {'class': 'mb15'})
             order_name = offer.find('div', {'class': 'wants-card__header-title first-letter breakwords pr250'})
             order_payment = offer.find('div', {'class': 'wants-card__header-price wants-card__price m-hidden'})
-            order_discription = offer.find('div', {'class': 'breakwords first-letter js-want-block-toggle js-want-block-toggle-full hidden'}).text.replace('Скрыть', '')
+            order_discription = offer.find('div', {'class': 'breakwords first-letter js-want-block-toggle js-want-block-toggle-full hidden'})
             customer = data.find('div', {'class': 'dib v-align-t ml10'})
             count_off = customer.find('div', {'class': 'dib v-align-t'}).text
 
@@ -33,10 +33,13 @@ def parse() -> list:
             if order_name is None:
                 order_name = offer.find('div', {'class': 'wants-card__header-title first-letter breakwords pr200'})
                 order_url = order_name.find('a').get('href')
+            else:
+                order_url = order_name.find('a').get('href')
 
-                continue
-
-            order_url = order_name.find('a').get('href')
+            if order_discription is None:
+                order_discription = offer.find('div', {'class': 'breakwords first-letter'}).text
+            else:
+                order_discription = order_discription.text.replace('Скрыть', '')
 
             result_list.append(
                 {
@@ -68,4 +71,3 @@ def read_log() -> str:
             os.mkdir('log')
         except FileExistsError:
             pass
-        

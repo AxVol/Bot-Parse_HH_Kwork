@@ -71,7 +71,6 @@ def telegram_bot(token):
             bot.send_message(message.chat.id, "Wait a minute....Process...")
             data = kwork.parse()
             log = kwork.read_log()
-            print(data[0]['order_name'])
 
             if data[0]['order_name'] == log:
                 bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
@@ -86,7 +85,7 @@ def telegram_bot(token):
                         url = info['order_url']
 
                         bot.send_message(message.chat.id,
-                            f'Заказ: {name}\n\nОписание:\n  {description}\n\nОплата: {payment}\n\nИнформация о заказчике:\n   -Количество заказов: {count_offers}\n   -Процент законченых: {precent_orders}\n\n{url}')
+                            f'Заказ: {name}\n\nОписание:\n {description}\n\nОплата: {payment}\n\nИнформация о заказчике:\n   -Количество заказов: {count_offers}\n   -Процент законченых: {precent_orders}\n\n{url}')
                     else:
                         break
 
