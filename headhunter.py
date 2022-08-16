@@ -12,6 +12,7 @@ def parse() -> dict:
         'area': 2,
         'page': 0,
         'per_page': 100,
+        'order_by': 'publication_time'
     }
 
     headers = {

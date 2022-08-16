@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime
 import telebot
 import headhunter
 
@@ -32,8 +33,19 @@ def telegram_bot(token):
             if work[0]['published_at'] == published:
                 bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
             else:
+                new_time_format = "%Y-%m-%d-%H:%M:%S"
+
+                if published == '':
+                    publish_time = None
+                else:
+                    publish_time = datetime.strptime(published, "%Y-%m-%dT%H:%M:%S+%f")
+                    publish_time.strftime(new_time_format)
+
                 for el in work:
-                    if el['published_at'] != published:
+                    time = datetime.strptime(el['published_at'], "%Y-%m-%dT%H:%M:%S+%f")
+                    time.strftime(new_time_format)
+                    
+                    if publish_time == None or time > publish_time:
                         name = el['name']
                         url = el['alternate_url']
                         schedule = el['schedule']['name']

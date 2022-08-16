@@ -1,12 +1,11 @@
 import os
 import requests
-import json
 
 from bs4 import BeautifulSoup as BS
 
 
-def parse() -> json:
-    result_json = []
+def parse() -> list:
+    result_list = []
 
     for pagination in range(1, 15):
         
@@ -39,7 +38,7 @@ def parse() -> json:
 
             order_url = order_name.find('a').get('href')
 
-            result_json.append(
+            result_list.append(
                 {
                     'order_name': order_name.text,
                     'order_discription': order_discription,
@@ -49,19 +48,13 @@ def parse() -> json:
                     'order_url': order_url
                 }
             )
-    try:
-        with open('json/kwork.json', 'w') as file:
-            json.dump(result_json, file, indent=4)
-    except:
-        os.mkdir('json')
 
-        with open('json/kwork.json', 'w') as file:
-            json.dump(result_json, file, indent=4) 
+    return result_list
 
 
-def create_log(date: str):
+def create_log(name: str):
     with open('log/kwork.txt', 'w', encoding='utf-8') as f:
-        f.write(date)
+        f.write(name)
 
 
 def read_log() -> str:
@@ -72,5 +65,3 @@ def read_log() -> str:
             return log
     except:
         os.mkdir('log')
-
-parse()
