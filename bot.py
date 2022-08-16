@@ -1,11 +1,11 @@
 import json
 import os
 import telebot
+
+from telebot import types
+
 import headhunter
 import kwork
-
-from datetime import datetime
-from telebot import types
 
 
 def telegram_bot(token):
@@ -29,54 +29,46 @@ def telegram_bot(token):
         if message.text == 'HeadHunter':
             data = json.loads(headhunter.parse())
             work = data['items']
+            last_vacancy = headhunter.former_time(work[0]['published_at'])
+
             published = headhunter.read_log()
 
-            if work[0]['published_at'] == published:
+            if last_vacancy == published:
                 bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
             else:
-                new_time_format = "%Y-%m-%d-%H:%M:%S"
-
-                if published == '':
-                    publish_time = None
-                else:
-                    publish_time = datetime.strptime(published, "%Y-%m-%dT%H:%M:%S+%f")
-                    publish_time.strftime(new_time_format)
-
                 for el in work:
-                    time = datetime.strptime(el['published_at'], "%Y-%m-%dT%H:%M:%S+%f")
-                    time.strftime(new_time_format)
-                    
-                    if publish_time == None or time > publish_time:
+                    published_at = headhunter.former_time(el['published_at'])
+                    if published is None or published_at > published:
                         name = el['name']
                         url = el['alternate_url']
                         schedule = el['schedule']['name']
 
-                        if el['address'] == None or el['address']['street'] == None:
+                        if el['address'] is None or el['address']['street'] is None:
                             address = 'Не указан'
                         else:
                             address = el['address']['street']
 
                         salary = el['salary']
-                        
-                        if salary == None:
+
+                        if salary is None:
                             payment = 'Не указана'
 
-                            bot.send_message(message.chat.id, 
+                            bot.send_message(message.chat.id,
                                 f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата - {payment}\nСcылка - {url}')
                         else:
                             from_payment = el['salary']['from']
                             to_payment = el['salary']['to']
                             currency = el['salary']['currency']
 
-                            bot.send_message(message.chat.id, 
+                            bot.send_message(message.chat.id,
                                 f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата\n    От: {from_payment}\n    До: {to_payment}\n    Валюта: {currency}\nСcылка - {url}')
                     else:
                         break
 
-                headhunter.create_log(work[0]['published_at'])
+                headhunter.create_log(last_vacancy)
 
         if message.text == 'Kwork':
-            bot.send_message(message.chat.id, f'Wait a minute....Process...')
+            bot.send_message(message.chat.id, "Wait a minute....Process...")
             data = kwork.parse()
             log = kwork.read_log()
             print(data[0]['order_name'])
@@ -85,15 +77,15 @@ def telegram_bot(token):
                 bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
             else:
                 for info in data:
-                    if info['order_name'] != log: 
+                    if info['order_name'] != log:
                         name = info['order_name']
                         description = info['order_description']
                         payment = info['order_payment']
                         count_offers = info['count_offers']
                         precent_orders = info['precent_orders']
                         url = info['order_url']
-                        
-                        bot.send_message(message.chat.id, 
+
+                        bot.send_message(message.chat.id,
                             f'Заказ: {name}\n\nОписание:\n  {description}\n\nОплата: {payment}\n\nИнформация о заказчике:\n   -Количество заказов: {count_offers}\n   -Процент законченых: {precent_orders}\n\n{url}')
                     else:
                         break
@@ -111,3 +103,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    

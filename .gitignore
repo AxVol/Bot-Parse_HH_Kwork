@@ -2,5 +2,6 @@ venv/
 log/
 __pycache__/
 .env
+.vscode
 test.html
 todo.txt

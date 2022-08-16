@@ -8,7 +8,7 @@ def parse() -> list:
     result_list = []
 
     for pagination in range(1, 15):
-        
+
         response = requests.get(f'https://kwork.ru/projects?c=41&page={pagination}').text
         soup = BS(response, 'lxml')
         block = soup.find('div', {'class': 'wants-content'})
@@ -30,11 +30,11 @@ def parse() -> list:
             else:
                 precent_orders = 'Нету данных'
 
-            if order_name == None:
+            if order_name is None:
                 order_name = offer.find('div', {'class': 'wants-card__header-title first-letter breakwords pr200'})
                 order_url = order_name.find('a').get('href')
 
-                continue    
+                continue
 
             order_url = order_name.find('a').get('href')
 
@@ -53,18 +53,19 @@ def parse() -> list:
 
 
 def create_log(name: str):
-    with open('log/kwork.txt', 'w', encoding='utf-8') as f:
-        f.write(name)
+    with open('log/kwork.txt', 'w', encoding='utf-8') as file:
+        file.write(name)
 
 
 def read_log() -> str:
     try:
-        with open('log/kwork.txt', 'r', encoding='utf-8') as f:
-            log = f.read()
+        with open('log/kwork.txt', 'r', encoding='utf-8') as file:
+            log = file.read()
 
             return log
-    except:
+    except FileNotFoundError:
         try:
             os.mkdir('log')
-        except:
+        except FileExistsError:
             pass
+        

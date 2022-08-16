@@ -1,5 +1,8 @@
-import requests
 import os
+
+from datetime import  datetime
+
+import requests
 
 from fake_useragent import UserAgent
 
@@ -26,16 +29,45 @@ def parse() -> dict:
     return data
 
 
-def create_log(date: str):
-    with open('log/headhunter.txt', 'w', encoding='utf-8') as f:
-        f.write(date)
+def create_log(date):
+    with open('log/headhunter.txt', 'w', encoding='utf-8') as file:
+        log = former_time(str(date))
+
+        file.write(str(log))
 
 
-def read_log() -> str:
+def read_log() -> datetime:
     try:
-        with open('log/headhunter.txt', 'r', encoding='utf-8') as f:
-            log = f.read()
+        with open('log/headhunter.txt', 'r', encoding='utf-8') as file:
+            log = file.read()
 
-            return log
-    except:
-        os.mkdir('log')
+            if log is None:
+                return log
+            else:
+                publish_time = former_time(log)
+
+                return publish_time
+    except FileNotFoundError:
+        try:
+            os.mkdir('log')
+        except FileExistsError:
+            pass
+
+
+def former_time(date):
+    format_time = "%Y-%m-%dT%H:%M:%S+%f"
+    second_format = "%Y-%m-%d %H:%M:%S"
+    new_time_format = "%Y-%m-%d %H:%M:%S.030000"
+
+    try:
+        date = datetime.strptime(date, format_time)
+        date = datetime.strptime(str(date), new_time_format)
+
+        return date
+    except ValueError:
+        if date == '':
+            return None
+        else:
+            date = datetime.strptime(date, second_format)
+
+            return date
