@@ -1,9 +1,10 @@
 import json
 import os
-from datetime import datetime
 import telebot
 import headhunter
+import kwork
 
+from datetime import datetime
 from telebot import types
 
 
@@ -75,8 +76,29 @@ def telegram_bot(token):
                 headhunter.create_log(work[0]['published_at'])
 
         if message.text == 'Kwork':
-            bot.send_message(message.chat.id, '1')
+            bot.send_message(message.chat.id, f'Wait a minute....Process...')
+            data = kwork.parse()
+            log = kwork.read_log()
+            print(data[0]['order_name'])
 
+            if data[0]['order_name'] == log:
+                bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
+            else:
+                for info in data:
+                    if info['order_name'] != log: 
+                        name = info['order_name']
+                        description = info['order_description']
+                        payment = info['order_payment']
+                        count_offers = info['count_offers']
+                        precent_orders = info['precent_orders']
+                        url = info['order_url']
+                        
+                        bot.send_message(message.chat.id, 
+                            f'Заказ: {name}\n\nОписание:\n  {description}\n\nОплата: {payment}\n\nИнформация о заказчике:\n   -Количество заказов: {count_offers}\n   -Процент законченых: {precent_orders}\n\n{url}')
+                    else:
+                        break
+
+                kwork.create_log(data[0]['order_name'])
 
     bot.polling()
 

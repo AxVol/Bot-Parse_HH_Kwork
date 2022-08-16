@@ -41,7 +41,7 @@ def parse() -> list:
             result_list.append(
                 {
                     'order_name': order_name.text,
-                    'order_discription': order_discription,
+                    'order_description': order_discription,
                     'order_payment': order_payment.text,
                     'count_offers': count_offers,
                     'precent_orders': precent_orders,
@@ -64,4 +64,7 @@ def read_log() -> str:
 
             return log
     except:
-        os.mkdir('log')
+        try:
+            os.mkdir('log')
+        except:
+            pass
