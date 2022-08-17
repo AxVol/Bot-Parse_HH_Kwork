@@ -1,3 +1,4 @@
+""" Основной модуль программы отвечающий за работу бота """
 import json
 import os
 import telebot
@@ -9,16 +10,22 @@ import kwork
 
 
 def telegram_bot(token):
+    '''
+    Основная функция бота, где происходит обработка начинающей функции "/start"
+    И остальных строковых команд с обращениями к модулям
+    '''
     bot = telebot.TeleBot(token)
 
 
     @bot.message_handler(commands=["start"])
     def start_message(message):
-        markup = types.ReplyKeyboardMarkup(resize_keyboard = True)
-        HeadHunter = types.KeyboardButton('HeadHunter')
-        Kwork = types.KeyboardButton('Kwork')
+        ''' Создание кнопок по которым и происходит навигация пользователя '''
 
-        markup.add(HeadHunter, Kwork)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard = True)
+        hunter = types.KeyboardButton('HeadHunter')
+        kworks = types.KeyboardButton('Kwork')
+
+        markup.add(hunter, kworks)
 
         bot.send_message(message.chat.id, "Привіт, Господин?")
         bot.send_message(message.chat.id, "Куды полезем?", reply_markup = markup)
@@ -26,56 +33,85 @@ def telegram_bot(token):
 
     @bot.message_handler(content_types=['text'])
     def get_text(message):
+        ''' Обработка полученного текста от пользователя '''
+
         if message.text == 'HeadHunter':
+            # Обработка полученного json файла от API HH
             data = json.loads(headhunter.parse())
             work = data['items']
-            last_vacancy = headhunter.former_time(work[0]['published_at'])
 
+            last_vacancy = headhunter.former_time(work[0]['published_at'])
             published = headhunter.read_log()
 
+            # Проверка чтобы лишний раз не напрягать бота,
+            # Если с прошлого запроса ничего не изменилось
             if last_vacancy == published:
                 bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
             else:
-                for el in work:
-                    published_at = headhunter.former_time(el['published_at'])
-                    if published is None or published_at > published:
-                        name = el['name']
-                        url = el['alternate_url']
-                        schedule = el['schedule']['name']
+                for element in work:
+                    published_at = headhunter.former_time(element['published_at'])
 
-                        if el['address'] is None or el['address']['street'] is None:
+                    # Проверка чтобы обработка шла до тех пор,
+                    # Пока не попадется вакансия с датой публикации позже последней
+                    if published is None or published_at > published:
+                        name = element['name']
+                        url = element['alternate_url']
+                        schedule = element['schedule']['name']
+
+                        # Проверки на пустые поля, чтобы вывод следать корректным
+                        if element['address'] is None or element['address']['street'] is None:
                             address = 'Не указан'
                         else:
-                            address = el['address']['street']
+                            address = element['address']['street']
 
-                        salary = el['salary']
+                        salary = element['salary']
 
                         if salary is None:
                             payment = 'Не указана'
 
+                            # Форматирование отправки сообщения выглядит странно,
+                            # Ибо при многострочном тексте сохраняет отступы,
+                            # Cделанные внутри фукнций
                             bot.send_message(message.chat.id,
-                                f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата - {payment}\nСcылка - {url}')
+f'''Должность - {name}
+Улица - {address}
+Занятость - {schedule}
+Зарплата - {payment}
+Сcылка - {url}''')
                         else:
-                            from_payment = el['salary']['from']
-                            to_payment = el['salary']['to']
-                            currency = el['salary']['currency']
+                            from_payment = element['salary']['from']
+                            to_payment = element['salary']['to']
+                            currency = element['salary']['currency']
 
                             bot.send_message(message.chat.id,
-                                f'Должность - {name}\nУлица - {address}\nЗанятость - {schedule}\nЗарплата\n    От: {from_payment}\n    До: {to_payment}\n    Валюта: {currency}\nСcылка - {url}')
+f'''Должность - {name}
+Улица - {address}
+Занятость - {schedule}
+Зарплата:
+    От: {from_payment}
+    До: {to_payment}
+    Валюта: {currency}
+Сcылка - {url}''')
                     else:
                         break
 
                 headhunter.create_log(last_vacancy)
 
         if message.text == 'Kwork':
+            # Обработка данных полученных после работы модуля Kwork
+
             bot.send_message(message.chat.id, "Wait a minute....Process...")
             data = kwork.parse()
             log = kwork.read_log()
 
+            # Проверка чтобы лишний раз не напрягать бота,
+            # Если с прошлого запроса ничего не изменилось
             if data[0]['order_name'] == log:
                 bot.send_message(message.chat.id, 'С прошлого раза ничего не изменилось = (')
             else:
                 for info in data:
+                    # Проверка чтобы обработка шла до тех пор,
+                    # Пока не попадется заказ с названием как в логах
                     if info['order_name'] != log:
                         name = info['order_name']
                         description = info['order_description']
@@ -85,7 +121,14 @@ def telegram_bot(token):
                         url = info['order_url']
 
                         bot.send_message(message.chat.id,
-                            f'Заказ: {name}\n\nОписание:\n {description}\n\nОплата: {payment}\n\nИнформация о заказчике:\n   -Количество заказов: {count_offers}\n   -Процент законченых: {precent_orders}\n\n{url}')
+f'''Заказ: {name}\n
+Описание:\n
+    {description}\n
+Оплата: {payment}\n
+Информация о заказчике:
+    -Количество заказов: {count_offers}
+    -Процент законченых: {precent_orders}\n
+{url}''')
                     else:
                         break
 
@@ -95,6 +138,8 @@ def telegram_bot(token):
 
 
 def main():
+    ''' Функция запускающая бота и берущая токен из переменного окружения '''
+
     token = os.getenv('TOKEN')
 
     telegram_bot(token)

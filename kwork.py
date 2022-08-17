@@ -1,3 +1,4 @@
+""" Модуль отвечающий за сбор данных с Kwork и создание логов к нему"""
 import os
 import requests
 
@@ -5,9 +6,15 @@ from bs4 import BeautifulSoup as BS
 
 
 def parse() -> list:
+    '''
+    Функция отвечающая за парсинг кворка и собирающая все нужные данные.
+    Название заказа, его ценник и описание, а так же важную информациюю о заказчике,
+    Такую как количество созданных им заказов и нанятых фрилансеров,
+    Чтобы отсеивать тех кто просто выкладывают заказы и не закрывают их.
+    '''
     result_list = []
 
-    for pagination in range(1, 15):
+    for pagination in range(1, 20):
 
         response = requests.get(f'https://kwork.ru/projects?c=41&page={pagination}').text
         soup = BS(response, 'lxml')
@@ -16,22 +23,31 @@ def parse() -> list:
 
         for data in content:
             offer = data.find('div', {'class': 'mb15'})
-            order_name = offer.find('div', {'class': 'wants-card__header-title first-letter breakwords pr250'})
-            order_payment = offer.find('div', {'class': 'wants-card__header-price wants-card__price m-hidden'})
-            order_discription = offer.find('div', {'class': 'breakwords first-letter js-want-block-toggle js-want-block-toggle-full hidden'})
+            order_name = offer.find('div', {
+                    'class': 'wants-card__header-title first-letter breakwords pr250'
+                })
+            order_payment = offer.find('div', {
+                    'class': 'wants-card__header-price wants-card__price m-hidden'
+                })
+            order_discription = offer.find('div', {
+            'class': 'breakwords first-letter js-want-block-toggle js-want-block-toggle-full hidden'
+            })
             customer = data.find('div', {'class': 'dib v-align-t ml10'})
-            count_off = customer.find('div', {'class': 'dib v-align-t'}).text
+            count_orders = customer.find('div', {'class': 'dib v-align-t'}).text
 
-            former = count_off.replace('\n', '').split()
+            former =count_orders.replace('\n', '').split()
             count_offers = f'{former[0]} {former[1]} {former[2]} {former[3]} {former[4]}'
 
+            # Блок с проверками на пустые поля и прочие мелочи, чтобы вывод данных был корректным
             if former[-1] != '1':
                 precent_orders = f'{former[-2]} {former[-1]}'
             else:
                 precent_orders = 'Нету данных'
 
             if order_name is None:
-                order_name = offer.find('div', {'class': 'wants-card__header-title first-letter breakwords pr200'})
+                order_name = offer.find('div', {
+                        'class': 'wants-card__header-title first-letter breakwords pr200'
+                    })
                 order_url = order_name.find('a').get('href')
             else:
                 order_url = order_name.find('a').get('href')
@@ -41,6 +57,7 @@ def parse() -> list:
             else:
                 order_discription = order_discription.text.replace('Скрыть', '')
 
+            # Загрузка данных в словарь чтобы потом бот их распарсил
             result_list.append(
                 {
                     'order_name': order_name.text,
@@ -56,11 +73,21 @@ def parse() -> list:
 
 
 def create_log(name: str):
+    '''
+    Создание логов на основе названия заказа,
+    Чтобы при следующем запросе к модулю, не получать повторные данные.
+    '''
     with open('log/kwork.txt', 'w', encoding='utf-8') as file:
         file.write(name)
 
 
 def read_log() -> str:
+    '''Чтение логов.
+
+    Так как чтение логов в боте встречается раньше чем запись,
+    То тут добавлена проверка на существование пути,
+    А так же на то, что другой модуль в программе уже мог создать эту папку.
+    '''
     try:
         with open('log/kwork.txt', 'r', encoding='utf-8') as file:
             log = file.read()
@@ -70,4 +97,4 @@ def read_log() -> str:
         try:
             os.mkdir('log')
         except FileExistsError:
-            pass
+            return None

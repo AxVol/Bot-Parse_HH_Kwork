@@ -1,3 +1,4 @@
+""" Модуль отвечающий за сбор данных с HeadHunter'a через его API и создание логов """
 import os
 
 from datetime import  datetime
@@ -8,7 +9,11 @@ from fake_useragent import UserAgent
 
 
 def parse() -> dict:
-    ua = UserAgent().random
+    '''
+    Функция отвечающая за обращение к API HH и вытягиванию нужных параметров в json файле,
+    Фильтр для которых прописан в словарике "params"
+    '''
+    agent = UserAgent().random
 
     params = {
         'text': 'Python junior',
@@ -19,17 +24,20 @@ def parse() -> dict:
     }
 
     headers = {
-        'User-Agent': ua
+        'User-Agent': agent
     }
 
     response = requests.get('https://api.hh.ru/vacancies', params=params, headers=headers)
     data = response.content.decode()
-    response.close()
 
     return data
 
 
 def create_log(date):
+    '''
+    Функция отвечающая за созднаие логов на основе времени последней вакансии,
+    Чтобы при следующем запросе не получать повторные данные
+    '''
     with open('log/headhunter.txt', 'w', encoding='utf-8') as file:
         log = former_time(str(date))
 
@@ -37,6 +45,12 @@ def create_log(date):
 
 
 def read_log() -> datetime:
+    '''Чтение логов.
+
+    Так как чтение логов в боте встречается раньше чем запись,
+    То тут добавлена проверка на существование пути,
+    А так же на то, что другой модуль в программе уже мог создать эту папку.
+    '''
     try:
         with open('log/headhunter.txt', 'r', encoding='utf-8') as file:
             log = file.read()
@@ -51,10 +65,14 @@ def read_log() -> datetime:
         try:
             os.mkdir('log')
         except FileExistsError:
-            pass
+            return None
 
 
 def former_time(date) -> datetime:
+    '''
+    Функция отвечающая за формирование человеко-понятного времени в логах,
+    На случай если их надо будет проверить вручную
+    '''
     format_time = "%Y-%m-%dT%H:%M:%S+%f"
     second_format = "%Y-%m-%d %H:%M:%S"
     new_time_format = "%Y-%m-%d %H:%M:%S.030000"
