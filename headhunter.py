@@ -1,11 +1,13 @@
 """ Модуль отвечающий за сбор данных с HeadHunter'a через его API и создание логов """
-import os
+#import os
 
 from datetime import  datetime
 
 import requests
 
 from fake_useragent import UserAgent
+
+import connect_sheet
 
 
 def parse() -> dict:
@@ -33,42 +35,66 @@ def parse() -> dict:
     return data
 
 
-def create_log(date):
+# Если вы не хотите настраивать подключение к гугл таблицам для ведения логов,
+# (Мне так было удобнее, для взаимодествие с ботом когда он лежит на сервере),
+# То просто закомментируйте соответствующие строки, а раскомментируйте те,
+# Которые отвечают за запись в локальный файл txt
+
+# ******* Не забудьте раскомментировать импорт модуля os
+
+def create_log(date: datetime, headhunter: str):
     '''
     Функция отвечающая за созднаие логов на основе времени последней вакансии,
     Чтобы при следующем запросе не получать повторные данные
     '''
-    with open('log/headhunter.txt', 'w', encoding='utf-8') as file:
-        log = former_time(str(date))
 
-        file.write(str(log))
+    log = former_time(str(date))
+
+    connect_sheet.main('write', str(log), headhunter)
+
+    # with open('log/headhunter.txt', 'w', encoding='utf-8') as file:
+    #     log = former_time(str(date))
+
+    #     file.write(str(log))
 
 
-def read_log() -> datetime:
+def read_log(headhunter: str) -> datetime:
     '''Чтение логов.
+
+    *** Это при условии что вы используете локальную запись файлов
 
     Так как чтение логов в боте встречается раньше чем запись,
     То тут добавлена проверка на существование пути,
     А так же на то, что другой модуль в программе уже мог создать эту папку.
     '''
-    try:
-        with open('log/headhunter.txt', 'r', encoding='utf-8') as file:
-            log = file.read()
 
-            if log is None:
-                return log
-            else:
-                publish_time = former_time(log)
+    result = connect_sheet.main('read', headhunter)
 
-                return publish_time
-    except FileNotFoundError:
-        try:
-            os.mkdir('log')
-        except FileExistsError:
-            return None
+    if result is None:
+        return None
+    else:
+        publish_time = former_time(result)
+
+        return publish_time
+
+    # try:
+    #     with open('log/headhunter.txt', 'r', encoding='utf-8') as file:
+    #         log = file.read()
+
+    #         if log is None:
+    #             return log
+    #         else:
+    #             publish_time = former_time(log)
+
+    #             return publish_time
+    # except FileNotFoundError:
+    #     try:
+    #         os.mkdir('log')
+    #     except FileExistsError:
+    #         return None
 
 
-def former_time(date) -> datetime:
+def former_time(date: str) -> datetime:
     '''
     Функция отвечающая за формирование человеко-понятного времени в логах,
     На случай если их надо будет проверить вручную

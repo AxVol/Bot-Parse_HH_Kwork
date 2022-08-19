@@ -41,7 +41,7 @@ def telegram_bot(token):
             work = data['items']
 
             last_vacancy = headhunter.former_time(work[0]['published_at'])
-            published = headhunter.read_log()
+            published = headhunter.read_log(message.text)
 
             # Проверка чтобы лишний раз не напрягать бота,
             # Если с прошлого запроса ничего не изменилось
@@ -95,14 +95,14 @@ f'''Должность - {name}
                     else:
                         break
 
-                headhunter.create_log(last_vacancy)
+                headhunter.create_log(last_vacancy, message.text)
 
         if message.text == 'Kwork':
             # Обработка данных полученных после работы модуля Kwork
 
             bot.send_message(message.chat.id, "Wait a minute....Process...")
             data = kwork.parse()
-            log = kwork.read_log()
+            log = kwork.read_log(message.text)
 
             # Проверка чтобы лишний раз не напрягать бота,
             # Если с прошлого запроса ничего не изменилось
@@ -132,7 +132,7 @@ f'''Заказ: {name}\n
                     else:
                         break
 
-                kwork.create_log(data[0]['order_name'])
+                kwork.create_log(data[0]['order_name'], message.text)
 
     bot.polling()
 

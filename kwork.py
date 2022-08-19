@@ -1,8 +1,10 @@
 """ Модуль отвечающий за сбор данных с Kwork и создание логов к нему"""
-import os
+#import os
 import requests
 
 from bs4 import BeautifulSoup as BS
+
+import connect_sheet
 
 
 def parse() -> list:
@@ -72,29 +74,43 @@ def parse() -> list:
     return result_list
 
 
-def create_log(name: str):
+# Если вы не хотите настраивать подключение к гугл таблицам для ведения логов,
+# (Мне так было удобнее, для взаимодествие с ботом когда он лежит на сервере),
+# То просто закомментируйте соответствующие строки, а раскомментируйте те,
+# Которые отвечают за запись в локальный файл txt
+
+# ******* Не забудьте раскомментировать импорт модуля os
+
+def create_log(name: str, kwork: str):
     '''
     Создание логов на основе названия заказа,
     Чтобы при следующем запросе к модулю, не получать повторные данные.
     '''
-    with open('log/kwork.txt', 'w', encoding='utf-8') as file:
-        file.write(name)
+    #with open('log/kwork.txt', 'w', encoding='utf-8') as file:
+        #file.write(name)
 
+    connect_sheet.main('write', name, kwork)
 
-def read_log() -> str:
+def read_log(kwork: str) -> str:
     '''Чтение логов.
+
+    *** Это при условии что вы используете локальную запись файлов
 
     Так как чтение логов в боте встречается раньше чем запись,
     То тут добавлена проверка на существование пути,
     А так же на то, что другой модуль в программе уже мог создать эту папку.
     '''
-    try:
-        with open('log/kwork.txt', 'r', encoding='utf-8') as file:
-            log = file.read()
 
-            return log
-    except FileNotFoundError:
-        try:
-            os.mkdir('log')
-        except FileExistsError:
-            return None
+    result = connect_sheet.main('read', kwork)
+
+    return result
+
+    #try:
+        #with open('log/kwork.txt', 'r', encoding='utf-8') as file:
+            #log = file.read()
+
+    #except FileNotFoundError:
+        #try:
+            #os.mkdir('log')
+        #except FileExistsError:
+            #return None
