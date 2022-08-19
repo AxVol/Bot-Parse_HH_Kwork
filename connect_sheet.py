@@ -29,7 +29,7 @@ def write_sheet(fields: list, values: str, cred: str, sheet_id: str):
                                 body=body).execute()
 
 
-def read_sheet(fields, cred, sheet_id):
+def read_sheet(fields: list, cred: str, sheet_id: str):
     """
     Чтение данных из передаваемых полей, которые возвращаются в виде списка,
     И так как в моем случае нужно читать только одно поле, он его и забирает, если вам нужно больше,
